@@ -1,12 +1,11 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import random
 from io import StringIO
+import random
 
-st.set_page_config(page_title='Warehouse Mapper', layout='wide')
-st.title("US Warehouse Mapper (Plotly Edition)")
+st.set_page_config(page_title="Warehouse Mapper", layout="wide")
+st.title("US Warehouse Mapper (Mapbox Edition)")
 
 if 'csv_data' not in st.session_state:
     st.session_state.csv_data = None
@@ -26,28 +25,28 @@ if st.session_state.csv_data is not None:
         st.success(f"Loaded {len(df)} warehouse locations.")
 
         unique_oems = df['type'].unique()
-        color_palette = px.colors.qualitative.Dark24
+        color_palette = px.colors.qualitative.Plotly
         random.shuffle(color_palette)
         oem_colors = {oem: color_palette[i % len(color_palette)] for i, oem in enumerate(unique_oems)}
         df['color'] = df['type'].map(oem_colors)
 
-        # Show OEM legend
         st.subheader("OEM Legend")
         for oem, color in oem_colors.items():
             st.markdown(f"<span style='color:{color}'>●</span> {oem}", unsafe_allow_html=True)
 
-        # Plotly map
-        fig = px.scatter_geo(
+        fig = px.scatter_mapbox(
             df,
             lat='lat',
             lon='long',
             color='type',
-            hover_name='type',
             color_discrete_map=oem_colors,
-            scope='usa',
-            title='Mapped Warehouses by OEM'
+            zoom=3,
+            height=650,
+            hover_name='type'
         )
-        fig.update_traces(marker=dict(size=8))
+        fig.update_layout(mapbox_style="carto-positron", margin={"r":0,"t":0,"l":0,"b":0})
+        fig.update_traces(marker=dict(size=9))
+
         st.plotly_chart(fig, use_container_width=True)
 
 else:
